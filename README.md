@@ -1,0 +1,1 @@
+# fifaWC2026ScoreTracker
