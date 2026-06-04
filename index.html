@@ -20,6 +20,8 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 @keyframes scorePop{0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(1)}}
+@keyframes scoreFlash{0%{color:#fff;text-shadow:0 0 12px var(--accent)}100%{}}
+.sv.flash{animation:scoreFlash 1.2s ease}
 
 /* ── HEADER ── */
 #header{background:linear-gradient(160deg,#091828 0%,#07101f 100%);border-bottom:1px solid var(--border);padding:0 20px;position:sticky;top:0;z-index:100}
@@ -105,7 +107,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .btn-ed:hover{background:#253a5a;color:var(--text)}
 .btn-hl{background:#0d2a1a;border:1px solid var(--done);color:#69f0ae;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
 .btn-hl:hover{background:#123a22}
-.btn-watch{background:#2a0d3a;border:1px solid #a64ac9;color:#d99 aff;color:#dba6ff;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.btn-watch{background:#2a0d3a;border:1px solid #a64ac9;color:#dba6ff;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
 .btn-watch:hover{background:#3a1252}
 .btn-watch2{background:#1a2540;border:1px solid var(--border);color:var(--muted)}
 .btn-watch2:hover{background:#253a5a;color:var(--text)}
@@ -244,7 +246,43 @@ table.st td:not(:nth-child(2)){text-align:center}
 .mgr-name{font-weight:800;font-size:15px;color:#fff}
 .mgr-team{font-size:11px;color:var(--muted)}
 
-@media(max-width:600px){.logo{font-size:19px}.tb{padding:8px 11px;font-size:12px}.tn{font-size:14px}.sv{font-size:24px}.gg{grid-template-columns:1fr}}
+/* Played badge clickable */
+.played-btn{cursor:pointer;transition:all .15s}
+.played-btn:hover{background:#0d2a1a;color:var(--done);border:1px solid var(--done)}
+/* Squads grid */
+.squad-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.squad-tile{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 10px;cursor:pointer;text-align:center;transition:all .15s;font-family:inherit}
+.squad-tile:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,212,255,.12);border-color:var(--accent)}
+.sq-flag{font-size:30px;line-height:1;margin-bottom:6px}
+.sq-name{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:var(--text)}
+.sq-grp{font-size:10px;font-weight:700;margin-top:2px}
+/* Squad detail */
+.back-btn{background:#1a2540;border:1px solid var(--border);color:var(--accent);font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;margin-bottom:14px}
+.back-btn:hover{background:#253a5a}
+.squad-head{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.sq-flag-lg{font-size:48px;line-height:1}
+.squad-title{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:#fff}
+.squad-coach{font-size:12px;color:var(--muted);margin-top:2px}
+.squad-sec{margin-bottom:16px}
+.squad-sec-h{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);padding-bottom:5px;margin-bottom:8px}
+.squad-players{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:4px}
+.sq-player{display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--card);border-radius:7px;font-size:13px}
+.sq-num{color:var(--muted);font-weight:800;font-family:'Barlow Condensed',sans-serif;min-width:22px;text-align:center}
+.sq-pname{font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
+.sq-meta{font-size:10px;color:var(--muted);margin-left:auto;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Results of the day modal */
+.res-day{display:flex;justify-content:space-between;align-items:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;color:#fff;margin:14px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.res-count{font-size:10px;color:var(--muted);font-weight:600}
+.res-row{display:flex;align-items:center;gap:8px;padding:8px 6px;border-radius:8px;cursor:pointer;transition:background .12s;font-size:13px}
+.res-row:hover{background:#0a1422}
+.res-tag{font-size:9px;font-weight:800;color:var(--accent);background:#0d2a4a;padding:2px 6px;border-radius:4px;min-width:34px;text-align:center;font-family:'Barlow Condensed',sans-serif}
+.res-team{flex:1;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.res-team.r{text-align:right}
+.res-team.win{color:var(--text);font-weight:800}
+.res-score{font-family:'Barlow Condensed',sans-serif;font-weight:900;color:var(--accent);min-width:48px;text-align:center;letter-spacing:1px}
+.res-hl{text-decoration:none;font-size:14px;min-width:18px;text-align:center}
+.res-hl-x{min-width:18px}
+@media(max-width:600px){.logo{font-size:19px}.tb{padding:8px 11px;font-size:12px}.tn{font-size:14px}.sv{font-size:24px}.gg{grid-template-columns:1fr}.squad-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}.squad-players{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -258,7 +296,7 @@ table.st td:not(:nth-child(2)){text-align:center}
       </div>
       <div class="hb">
         <span class="blv" id="lbadge">&#9679; <span id="lcnt">0</span> LIVE</span>
-        <span class="bdn">&#10003; <span id="dcnt">0</span> Played</span>
+        <span class="bdn played-btn" id="playedBtn" onclick="showResultsOfDay()" title="View results">&#10003; <span id="dcnt">0</span> Played &rsaquo;</span>
         <button class="refresh-btn" id="refreshBtn" onclick="manualRefresh()">&#8635; Refresh</button>
       </div>
     </div>
@@ -266,6 +304,7 @@ table.st td:not(:nth-child(2)){text-align:center}
       <button class="tb on" onclick="swTab('fixtures')">&#128197; Fixtures</button>
       <button class="tb" onclick="swTab('groups')">&#128202; Group Tables</button>
       <button class="tb" onclick="swTab('knockout')">&#127942; Knockout</button>
+      <button class="tb" onclick="swTab('squads')">&#128101; Squads</button>
       <button class="tb" onclick="swTab('stats')">&#129351; Statistics</button>
       <button class="tb" onclick="swTab('totw')">&#11088; Team of Week</button>
     </div>
@@ -276,6 +315,7 @@ table.st td:not(:nth-child(2)){text-align:center}
   <div id="pf" class="panel on"></div>
   <div id="pg" class="panel"></div>
   <div id="pk" class="panel"></div>
+  <div id="psq" class="panel"></div>
   <div id="ps" class="panel"></div>
   <div id="pw" class="panel"></div>
 </div>
@@ -439,7 +479,7 @@ let D={};
 try{D=JSON.parse(localStorage.getItem(SK)||"{}");}catch{}
 let aTab="fixtures",dF="all",gF="all",rF="all";
 // Track which matches are currently being fetched (prevent duplicate calls)
-const fetching={scores:new Set(),highlights:new Set(),news:new Set(),watch:new Set()};
+const fetching={scores:new Set(),highlights:new Set(),news:new Set(),watch:new Set(),squad:new Set()};
 let curMatchCentre=null;
 
 function sv(){try{localStorage.setItem(SK,JSON.stringify(D));}catch{}}
@@ -506,7 +546,10 @@ function autoStatus(m){
   const ko=kickoffUTC(m);if(!ko)return"upcoming";
   const diff=Date.now()-ko.getTime();
   if(diff<0)return"upcoming";
-  if(diff<125*60000)return"live"; // 2h5m window for live (accounts for ET)
+  // Regular time window = 2h5m. If the match went to extra time / penalties, extend to 2h45m.
+  const d=(typeof D!=="undefined"&&D[m.id])?D[m.id]:{};
+  const liveWindow=(d.extraTime?165:125)*60000; // 2h45m vs 2h5m
+  if(diff<liveWindow)return"live";
   return"finished";
 }
 function gSt(m){return gd(m.id).status||autoStatus(m);}
@@ -553,6 +596,25 @@ function safeParse(raw){
   try{ return JSON.parse(cleaned.replace(/,\s*([}\]])/g,"$1")); }catch(e){}
   // Attempt 3: strip control characters and retry
   try{ return JSON.parse(cleaned.replace(/[\u0000-\u001F]+/g," ").replace(/,\s*([}\]])/g,"$1")); }catch(e){}
+  return null; // caller decides whether to retry / warn
+}
+
+// Fetch JSON with automatic one-shot retry: if the first reply isn't valid JSON,
+// ask the model to reformat its OWN previous answer as pure JSON (no new search).
+async function callAIJSON(prompt, useSearch){
+  // Attempt 1
+  let raw;
+  try{ raw=await callAI([{role:"user",content:prompt}], useSearch, true); }
+  catch(e){ console.warn("AI request failed:",e.message); return null; }
+  let parsed=safeParse(raw);
+  if(parsed) return parsed;
+  // Attempt 2 — reformat the previous answer into strict JSON (no tools, faster)
+  try{
+    const fixPrompt="Convert the following into a single valid JSON object only. Output nothing except the JSON — no prose, no code fences. If a value is unknown use null.\n\n"+raw;
+    const raw2=await callAI([{role:"user",content:fixPrompt}], false, true);
+    parsed=safeParse(raw2);
+    if(parsed) return parsed;
+  }catch(e){}
   console.warn("JSON parse skipped (AI returned non-JSON) — will retry next sync");
   return null;
 }
@@ -566,22 +628,29 @@ async function fetchLiveScore(m){
   showSyncBar(true);
   try{
     const prompt=`Search the web right now for the live score of the FIFA World Cup 2026 match: ${m.home} vs ${m.away} (${m.date}). Return ONLY this JSON:
-{"homeScore":N,"awayScore":N,"minute":N,"status":"live","events":["45' Goal - Mbappe (FRA)","67' Yellow - Müller (GER)"]}
-If not found or not started yet, return {"homeScore":null,"awayScore":null,"minute":null,"status":"upcoming","events":[]}`;
-    const raw=await callAI([{role:"user",content:prompt}],true,true);
-    const p=safeParse(raw);
+{"homeScore":N,"awayScore":N,"minute":N,"status":"live","phase":"first half / second half / extra time / penalties / full time","events":["45' Goal - Mbappe (FRA)","67' Yellow - Müller (GER)"]}
+For "phase", say "extra time" if the game is in extra time, or "penalties" if in a penalty shootout. If not found or not started yet, return {"homeScore":null,"awayScore":null,"minute":null,"status":"upcoming","phase":"","events":[]}`;
+    const p=await callAIJSON(prompt,true);
     if(p&&p.homeScore!==null&&p.homeScore!==undefined){
       const prev=gd(m.id);
       const changed=(prev.homeScore!==p.homeScore||prev.awayScore!==p.awayScore);
       const minChanged=(prev.liveMinute!==p.minute);
+      // Detect extra time / penalties — either reported by phase, or the game is still
+      // live past the 2h5m regular-time window. Once flagged, the window extends to 2h45m.
+      const ko=kickoffUTC(m);
+      const pastRegular = ko ? (Date.now()-ko.getTime() > 125*60000) : false;
+      const phaseStr=(p.phase||"").toLowerCase();
+      const inET = phaseStr.includes("extra")||phaseStr.includes("penal")||(p.status==="live"&&pastRegular);
       sd(m.id,{
         homeScore:p.homeScore,awayScore:p.awayScore,
         liveMinute:p.minute,events:p.events||[],
         status:p.status||"live",
+        phase:p.phase||"",
+        extraTime: prev.extraTime || inET,
         lastFetched:Date.now(),scoreChanged:changed
       });
-      // Only repaint if score or minute actually changed (avoids needless refresh)
-      if(changed||minChanged) softRerender();
+      // Update ONLY the score/minute text in place — no page rebuild, no flicker
+      if(changed||minChanged) updateScoreInPlace(m);
     }
   }catch(e){console.warn("live score fail:",e);}
   fetching.scores.delete(m.id);
@@ -601,8 +670,7 @@ async function fetchFinalScore(m){
     const prompt=`Search the web for the final score of FIFA World Cup 2026 match: ${m.home} vs ${m.away} (${m.date}). Return ONLY this JSON:
 {"homeScore":N,"awayScore":N,"scorers":["45' Mbappe (FRA)","67' Müller (GER)"],"result":"Home team name won 2-1" }
 If the match hasn't been played yet, return {"homeScore":null}`;
-    const raw=await callAI([{role:"user",content:prompt}],true,true);
-    const p=safeParse(raw);
+    const p=await callAIJSON(prompt,true);
     if(p&&p.homeScore!==null&&p.homeScore!==undefined){
       sd(m.id,{
         homeScore:p.homeScore,awayScore:p.awayScore,
@@ -655,8 +723,7 @@ async function fetchBroadcast(id){
     const prompt=`Where can I watch the FIFA World Cup 2026 match ${m.home} vs ${m.away} (${m.date}, ${etIST(m.et)}) live? List official broadcasters and legal streaming services, especially for India (e.g. JioCinema/JioHotstar/Sony) plus global (FOX, Telemundo, BBC). Return ONLY this JSON:
 {"providers":[{"name":"JioHotstar","region":"India","url":"https://..."},{"name":"FOX Sports","region":"USA","url":"https://..."}]}
 Provide direct homepage or live-stream URLs. If unknown, return {"providers":[]}.`;
-    const raw=await callAI([{role:"user",content:prompt}],true,true);
-    const p=safeParse(raw);
+    const p=await callAIJSON(prompt,true);
     if(p&&Array.isArray(p.providers)&&p.providers.length){
       sd(id,{watchProviders:p.providers});
     } else {
@@ -677,8 +744,7 @@ async function fetchHighlight(m){
     const prompt=`Search the web for the best highlight video link for FIFA World Cup 2026 match: ${m.home} vs ${m.away} (${m.date}). Look for YouTube, FIFA official site, or major sports channel. Return ONLY this JSON:
 {"url":"https://...","source":"YouTube","title":"Match highlights title"}
 If not found, return {"url":null}`;
-    const raw=await callAI([{role:"user",content:prompt}],true,true);
-    const p=safeParse(raw);
+    const p=await callAIJSON(prompt,true);
     if(p&&p.url&&p.url.startsWith("http")){
       sd(m.id,{highlightUrl:p.url,highlightSource:p.source||"",highlightTitle:p.title||""});
       softRerender();
@@ -724,6 +790,81 @@ function updateRefreshBtn(){
   b.disabled = refreshing;
 }
 
+// ── Surgical in-place score/minute update (NO full rerender → zero flicker) ──
+function updateScoreInPlace(m){
+  const d=gd(m.id);
+  const st=gSt(m);
+  const hasScore=d.homeScore!=null&&d.awayScore!=null;
+  // Update the score box
+  const box=document.getElementById("score"+m.id);
+  if(box){
+    let inner="";
+    if(hasScore){
+      inner=`<div class="sv${st==="live"?" lv flash":""}">${d.homeScore}&ndash;${d.awayScore}</div>`;
+      if(d.liveMinute&&st==="live")inner+=`<div class="svsub">${d.liveMinute}'</div>`;
+      else if(st==="finished")inner+=`<div class="svsub">Full Time</div>`;
+    } else {
+      inner=`<div class="svs">VS</div><div class="svsub">${etIST(m.et)}</div>`;
+    }
+    box.innerHTML=inner;
+  }
+  // Update the live-minute badge
+  const minEl=document.getElementById("min"+m.id);
+  if(minEl&&st==="live")minEl.textContent=d.liveMinute?d.liveMinute+"'":"";
+  // Keep group tables in sync silently if user is on that tab and a live score affects standings
+  if(aTab==="groups"&&m.group) rerender();
+}
+
+// ── Flicker-free auto-update: refresh ONLY live score/minute every 60s ──
+let liveAutoTimer=null;
+function liveAutoTick(){
+  let anyLive=false;
+  M.forEach(m=>{
+    const st=gSt(m);
+    if(st==="live"){
+      anyLive=true;
+      fetchLiveScore(m); // updates score/minute in place on change
+      // also refresh Match Centre detail if it is open for this live match
+      const d=gd(m.id);
+      if(curMatchCentre===m.id&&(!d.detailFetched||Date.now()-d.detailFetched>55000)) fetchMatchDetail(m,true);
+    } else if(st==="finished"){
+      const d=gd(m.id);
+      const ko=kickoffUTC(m);
+      const minsPast = ko ? (Date.now()-ko.getTime())/60000 : 999;
+      // Boundary safeguard: a regular match just crossed 2h5m. Poll once more to catch
+      // a late switch to extra time before treating it as finished.
+      if(!d.extraTime && !d.finalScoreFetched && minsPast<128){
+        anyLive=true; // keep ticking briefly
+        fetchLiveScore(m);
+      } else {
+        if(!d.finalScoreFetched&&!fetching.scores.has(m.id)) fetchFinalScore(m);
+        if(d.homeScore!=null&&!d.highlightUrl&&!fetching.highlights.has(m.id)) fetchHighlight(m);
+      }
+    }
+  });
+  updBadges();
+  if(!anyLive){ // no live games → stop ticking, wait for next kickoff
+    if(liveAutoTimer){clearInterval(liveAutoTimer);liveAutoTimer=null;}
+    scheduleNextLive();
+  }
+}
+function startLiveAuto(){
+  if(liveAutoTimer) return;
+  liveAutoTick();
+  liveAutoTimer=setInterval(liveAutoTick,60000);
+}
+function scheduleNextLive(){
+  const now=Date.now();
+  let earliest=Infinity;
+  M.forEach(m=>{
+    if(gSt(m)!=="upcoming") return;
+    const ko=kickoffUTC(m);
+    if(ko&&ko.getTime()>now) earliest=Math.min(earliest,ko.getTime()-now);
+  });
+  if(earliest===Infinity) return;
+  setTimeout(startLiveAuto, earliest+5000);
+}
+
 // Sync bar visibility helper
 let syncBarTimer=null;
 function showSyncBar(show){
@@ -759,18 +900,19 @@ function rCard(m){
   else br+=`<span class="bg bup">UPCOMING</span>`;
   if(m.group)br+=`<span class="bg" style="background:${gc}22;color:${gc};border:1px solid ${gc}55">GROUP ${m.group}</span>`;
   if(rl)br+=`<span class="bg bround">${eh(rl)}${m.matchNo?` &middot; M${m.matchNo}`:""}</span>`;
-  if(st==="live"&&d.liveMinute)br+=`<span class="bmin">${d.liveMinute}'</span>`;
+  if(st==="live")br+=`<span class="bmin" id="min${m.id}">${d.liveMinute?d.liveMinute+"'":""}</span>`;
   if(isFetching)br+=`<span class="bfetch">&#8635; updating&hellip;</span>`;
 
-  // Score
-  let scoreHtml="";
+  // Score (wrapped with stable id so it can be updated in place without a full rerender)
+  let scoreInner="";
   if(hasScore){
-    scoreHtml=`<div class="sv${st==="live"?" lv":""}">${d.homeScore}&ndash;${d.awayScore}</div>`;
-    if(d.liveMinute&&st==="live")scoreHtml+=`<div class="svsub">${d.liveMinute}'</div>`;
-    else if(st==="finished"&&d.lastFetched)scoreHtml+=`<div class="svsub">Full Time</div>`;
+    scoreInner=`<div class="sv${st==="live"?" lv":""}">${d.homeScore}&ndash;${d.awayScore}</div>`;
+    if(d.liveMinute&&st==="live")scoreInner+=`<div class="svsub">${d.liveMinute}'</div>`;
+    else if(st==="finished"&&d.lastFetched)scoreInner+=`<div class="svsub">Full Time</div>`;
   } else {
-    scoreHtml=`<div class="svs">VS</div><div class="svsub">${etIST(m.et)}</div>`;
+    scoreInner=`<div class="svs">VS</div><div class="svsub">${etIST(m.et)}</div>`;
   }
+  const scoreHtml=`<span id="score${m.id}">${scoreInner}</span>`;
 
   // Events ticker (live goals/cards)
   let evHtml="";
@@ -978,14 +1120,16 @@ function rerender(){
   if(aTab==="fixtures")document.getElementById("pf").innerHTML=rFixtures();
   else if(aTab==="groups")document.getElementById("pg").innerHTML=rGroups();
   else if(aTab==="knockout")document.getElementById("pk").innerHTML=rKnockout();
+  else if(aTab==="squads"){ renderSquadView(); }
   else if(aTab==="stats")document.getElementById("ps").innerHTML=rStats();
   else if(aTab==="totw")document.getElementById("pw").innerHTML=rTOTW();
 }
 
 function swTab(t){
   aTab=t;dF="all";gF="all";rF="all";
-  const order=["fixtures","groups","knockout","stats","totw"];
-  const pmap={fixtures:"pf",groups:"pg",knockout:"pk",stats:"ps",totw:"pw"};
+  if(t==="squads")curSquadTeam=null;
+  const order=["fixtures","groups","knockout","squads","stats","totw"];
+  const pmap={fixtures:"pf",groups:"pg",knockout:"pk",squads:"psq",stats:"ps",totw:"pw"};
   document.querySelectorAll(".tb").forEach((b,i)=>b.classList.toggle("on",order[i]===t));
   document.querySelectorAll(".panel").forEach(p=>p.classList.remove("on"));
   document.getElementById(pmap[t]).classList.add("on");
@@ -1084,8 +1228,7 @@ async function fetchMatchDetail(m, isLive){
  "stats":{"possession":["55%","45%"],"shots":["12","8"],"shotsOnTarget":["5","3"],"xG":["1.8","0.9"],"corners":["6","4"],"fouls":["10","12"],"offsides":["2","3"],"passes":["520","410"],"passAccuracy":["88%","82%"],"yellowCards":["1","3"],"redCards":["0","1"],"saves":["3","5"]}
 }
 Mark subbedOff:true for starters who were substituted out, and subbedOn:true for subs who came on. Include player ratings (0-10) for every player. In events include goals, big chances missed, yellow/red cards, and substitutions with the exact minute. If match not started, return {"homeScore":null} but still include "home"/"away" with expected lineups if known. No markdown, only JSON.`;
-    const raw=await callAI([{role:"user",content:prompt}],true,true);
-    const p=safeParse(raw);
+    const p=await callAIJSON(prompt,true);
     if(p&&p.homeScore!==null&&p.homeScore!==undefined){
       sd(m.id,{homeScore:p.homeScore,awayScore:p.awayScore,liveMinute:p.minute,detail:p,detailFetched:Date.now(),status:isLive?"live":"finished"});
     } else if(p){
@@ -1230,6 +1373,134 @@ function renderMatchCentre(m){
 }
 
 // ═══════════════════════════════════════════
+// SQUADS — all 48 teams, 26-man squads submitted to FIFA
+// ═══════════════════════════════════════════
+let squadData={};
+try{squadData=JSON.parse(localStorage.getItem("fifa26squads")||"{}");}catch{}
+let curSquadTeam=null;
+let loadingAllSquads=false;
+
+// All 48 teams flat list (from the 12 groups)
+function allTeams(){
+  const list=[];
+  Object.keys(GR).forEach(g=>GR[g].forEach(t=>list.push({team:t,group:g})));
+  return list;
+}
+
+async function fetchSquad(team){
+  if(fetching.squad.has(team))return;
+  fetching.squad.add(team);
+  renderSquadView();
+  try{
+    const prompt=`Search the web for the FINAL official 26-player squad that ${team} submitted to FIFA for the 2026 World Cup. These final squads are now confirmed. Use the actual announced list with correct shirt numbers. Return ONLY this JSON:
+{"coach":"Head coach name","players":[{"num":1,"name":"Player Name","pos":"GK","club":"Current Club","age":28,"caps":40}]}
+Use pos values exactly: GK, DF, MF, FW. Include all 26 players with their official shirt numbers, current club, age and caps. If a specific detail is unknown use null, but always include the player name and position. No markdown, only JSON.`;
+    const p=await callAIJSON(prompt,true);
+    if(p&&Array.isArray(p.players)&&p.players.length){
+      squadData[team]={coach:p.coach||"",players:p.players,fetched:Date.now()};
+      localStorage.setItem("fifa26squads",JSON.stringify(squadData));
+    } else {
+      squadData[team]={error:true};
+    }
+  }catch(e){ squadData[team]={error:true}; }
+  fetching.squad.delete(team);
+  renderSquadView();
+}
+
+function openSquad(team){
+  curSquadTeam=team;
+  renderSquadView();
+  if(!squadData[team]||squadData[team].error) fetchSquad(team);
+}
+
+// Fetch every team's squad, in small batches so the API isn't flooded.
+async function loadAllSquads(){
+  if(loadingAllSquads) return;
+  loadingAllSquads=true;
+  if(aTab==="squads"&&!curSquadTeam) renderSquadView();
+  const teams=allTeams().map(t=>t.team).filter(t=>!(squadData[t]&&squadData[t].players)); // skip already loaded
+  const BATCH=3;
+  for(let i=0;i<teams.length;i+=BATCH){
+    const slice=teams.slice(i,i+BATCH);
+    await Promise.all(slice.map(t=>fetchSquad(t)));
+    // refresh the grid progress after each batch
+    if(aTab==="squads"&&!curSquadTeam) renderSquadView();
+  }
+  loadingAllSquads=false;
+  if(aTab==="squads"&&!curSquadTeam) renderSquadView();
+}
+
+function rSquads(){
+  // Count how many squads already loaded
+  const total=allTeams().length;
+  let loaded=0;
+  allTeams().forEach(({team})=>{ if(squadData[team]&&!squadData[team].error&&squadData[team].players) loaded++; });
+  let html=`<div class="stat-note">All 48 final squads have been submitted to FIFA. Tap a team to view its 26-player squad, or load every squad at once.</div>`;
+  html+=`<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">`;
+  if(loadingAllSquads){
+    html+=`<button class="stats-refresh" disabled>&#8635; Loading squads&hellip; ${loaded}/${total}</button>`;
+  } else {
+    html+=`<button class="stats-refresh" onclick="loadAllSquads()">&#11015; Load All ${total} Squads</button>`;
+  }
+  html+=`<span class="stat-note" style="margin:0">${loaded}/${total} loaded</span></div>`;
+  html+=`<div class="squad-grid">`;
+  Object.keys(GR).forEach(g=>{
+    GR[g].forEach(t=>{
+      const loaded=squadData[t]&&!squadData[t].error;
+      html+=`<button class="squad-tile" style="border-color:${GC[g]}55" onclick="openSquad('${eh(t).replace(/'/g,"\\'")}')">
+        <div class="sq-flag">${f(t)}</div>
+        <div class="sq-name">${eh(t)}</div>
+        <div class="sq-grp" style="color:${GC[g]}">Group ${g}${loaded?" &middot; &#10003;":""}</div>
+      </button>`;
+    });
+  });
+  html+=`</div>`;
+  return html;
+}
+
+function renderSquadView(){
+  if(aTab!=="squads"){ return; }
+  if(!curSquadTeam){ document.getElementById("psq").innerHTML=rSquads(); return; }
+  const team=curSquadTeam;
+  const sq=squadData[team];
+  const isFetching=fetching.squad.has(team);
+  let html=`<button class="back-btn" onclick="curSquadTeam=null;renderSquadView()">&lsaquo; All Teams</button>`;
+  html+=`<div class="squad-head"><span class="sq-flag-lg">${f(team)}</span><div><div class="squad-title">${eh(team)}</div>`;
+  if(sq&&sq.coach)html+=`<div class="squad-coach">&#127935; ${eh(sq.coach)}</div>`;
+  html+=`</div></div>`;
+
+  if(isFetching&&(!sq||sq.error)){
+    html+=`<div class="al"><span class="asp">&#9917;</span>Loading ${eh(team)} squad&hellip;</div>`;
+  } else if(!sq||sq.error){
+    html+=`<div class="emp" style="padding:24px">Squad not available. <button class="stats-refresh" onclick="fetchSquad('${eh(team).replace(/'/g,"\\'")}')">&#8635; Try again</button></div>`;
+  } else {
+    const posOrder=[["GK","Goalkeepers"],["DF","Defenders"],["MF","Midfielders"],["FW","Forwards"]];
+    posOrder.forEach(([code,label])=>{
+      const grp=sq.players.filter(p=>(p.pos||"").toUpperCase()===code);
+      if(!grp.length)return;
+      html+=`<div class="squad-sec"><div class="squad-sec-h">${label}</div><div class="squad-players">`;
+      grp.forEach(p=>{
+        html+=`<div class="sq-player">
+          <span class="sq-num">${p.num||""}</span>
+          <span class="sq-pname">${eh(p.name||"")}</span>
+          <span class="sq-meta">${p.club?eh(p.club):""}${p.age?" &middot; "+p.age+"y":""}${p.caps!=null?" &middot; "+p.caps+" caps":""}</span>
+        </div>`;
+      });
+      html+=`</div></div>`;
+    });
+    // any players without a recognized position
+    const other=sq.players.filter(p=>!["GK","DF","MF","FW"].includes((p.pos||"").toUpperCase()));
+    if(other.length){
+      html+=`<div class="squad-sec"><div class="squad-sec-h">Squad</div><div class="squad-players">`;
+      other.forEach(p=>{ html+=`<div class="sq-player"><span class="sq-num">${p.num||""}</span><span class="sq-pname">${eh(p.name||"")}</span><span class="sq-meta">${p.club?eh(p.club):""}</span></div>`; });
+      html+=`</div></div>`;
+    }
+    html+=`<div style="text-align:center;margin-top:12px"><button class="stats-refresh" onclick="fetchSquad('${eh(team).replace(/'/g,"\\'")}')">&#8635; Refresh Squad</button></div>`;
+  }
+  document.getElementById("psq").innerHTML=html;
+}
+
+// ═══════════════════════════════════════════
 // TOURNAMENT STATISTICS ENGINE
 // ═══════════════════════════════════════════
 let statsData=null;
@@ -1252,8 +1523,7 @@ async function refreshStats(){
  "cards":[{"name":"Player","team":"URU","yellow":2,"red":1}]
 }
 Top 5-8 entries per category, ranked. If tournament not started, return all empty arrays. No markdown.`;
-    const raw=await callAI([{role:"user",content:prompt}],true,true);
-    const p=safeParse(raw);
+    const p=await callAIJSON(prompt,true);
     if(p){ statsData=p; localStorage.setItem("fifa26stats",JSON.stringify(p)); }
   }catch(e){console.warn("stats fail",e);}
   statsFetching=false;
@@ -1315,8 +1585,7 @@ async function refreshTOTW(week){
  "manager":{"name":"Coach","team":"X"}
 }
 If no matches played yet for this period, return {"gk":null}. No markdown.`;
-    const raw=await callAI([{role:"user",content:prompt}],true,true);
-    const p=safeParse(raw);
+    const p=await callAIJSON(prompt,true);
     if(p){ totwData[week]=p; localStorage.setItem("fifa26totw",JSON.stringify(totwData)); }
   }catch(e){console.warn("totw fail",e);}
   totwFetching=false;
@@ -1357,6 +1626,54 @@ function rTOTW(){
 function cModal(e){
   if(e&&e.target!==document.getElementById("modal"))return;
   document.getElementById("modal").style.display="none";
+  curMatchCentre=null;
+}
+
+// ═══════════════════════════════════════════
+// RESULTS OF THE DAY — opened from the "Played" badge
+// ═══════════════════════════════════════════
+function showResultsOfDay(){
+  // Gather all finished matches that have a score
+  const played=M.filter(m=>{
+    const d=gd(m.id);
+    return gSt(m)==="finished" && d.homeScore!=null && d.awayScore!=null;
+  });
+  document.getElementById("mtitle").innerHTML="&#10003; Results";
+  document.getElementById("mmatch").textContent=played.length?`${played.length} match${played.length>1?"es":""} played so far`:"";
+  document.getElementById("mmeta").textContent="";
+  curMatchCentre=null;
+
+  let body="";
+  if(!played.length){
+    body=`<div class="emp" style="padding:28px">No matches have finished yet.<br><span style="font-size:12px">Results will appear here as the tournament progresses.</span></div>`;
+  } else {
+    // Group by date, most recent day first
+    const byD={};
+    played.forEach(m=>{(byD[m.date]=byD[m.date]||[]).push(m);});
+    // Order dates by their position in the fixture list, newest first
+    const dates=Object.keys(byD).sort((a,b)=>{
+      const ai=M.findIndex(x=>x.date===a), bi=M.findIndex(x=>x.date===b);
+      return bi-ai;
+    });
+    dates.forEach(date=>{
+      body+=`<div class="res-day"><span>&#128197; ${eh(date)}</span><span class="res-count">${byD[date].length} played</span></div>`;
+      byD[date].forEach(m=>{
+        const d=gd(m.id);
+        const hw=d.homeScore>d.awayScore, aw=d.awayScore>d.homeScore;
+        const tag=m.group?`G${m.group}`:m.round?RL[m.round].replace(/&#127942; /,""):"";
+        body+=`<div class="res-row" onclick="document.getElementById('modal').style.display='none';openMatchCentre(${m.id})">
+          <span class="res-tag">${eh(tag)}</span>
+          <span class="res-team ${hw?'win':''}">${f(m.home)} ${eh(m.home)}</span>
+          <span class="res-score">${d.homeScore}&ndash;${d.awayScore}</span>
+          <span class="res-team r ${aw?'win':''}">${eh(m.away)} ${f(m.away)}</span>
+          ${d.highlightUrl?`<a class="res-hl" href="${eh(d.highlightUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Highlights">&#127909;</a>`:`<span class="res-hl-x"></span>`}
+        </div>`;
+      });
+    });
+    body+=`<div class="stat-note" style="margin-top:12px">Tap any result to open its full Match Centre (timeline, lineups, stats).</div>`;
+  }
+  document.getElementById("mbody").innerHTML=body;
+  document.getElementById("modal").style.display="flex";
 }
 
 // ═══════════════════════════════════════════
@@ -1364,9 +1681,12 @@ function cModal(e){
 // ═══════════════════════════════════════════
 rerender();
 updBadges();
-// No automatic refreshing. The user controls updates via the Refresh button.
-// One quiet pass on load to pick up highlights/final scores for already-finished matches.
-(function initialQuietPass(){
+// Live scores auto-update every 60s, updating ONLY the score/minute text (no page flicker).
+// Manual "Refresh" button is also available any time.
+if(M.some(m=>gSt(m)==="live")){
+  startLiveAuto();
+} else {
+  // One quiet pass for finished matches (final scores + highlights), then wait for next kickoff.
   M.forEach(m=>{
     const st=gSt(m); const d=gd(m.id);
     if(st==="finished"){
@@ -1374,7 +1694,35 @@ updBadges();
       if(d.homeScore!=null&&!d.highlightUrl&&!fetching.highlights.has(m.id)) fetchHighlight(m);
     }
   });
-})();
+  scheduleNextLive();
+}
+
+// Load squad data from external JSON file
+async function loadSquadDataFromFile(){
+  try{
+    // Try to load complete squad data file first
+    let response=await fetch('squads-complete.json');
+    if(!response.ok) response=await fetch('squads.json');
+    const data=await response.json();
+    // Merge with existing squadData, preferring file data
+    Object.keys(data).forEach(team=>{
+      if(!squadData[team]||!squadData[team].players||squadData[team].players.length===0){
+        squadData[team]=data[team];
+        // Ensure all required fields are present
+        if(!squadData[team].fetched) squadData[team].fetched=Date.now();
+      }
+    });
+    localStorage.setItem("fifa26squads",JSON.stringify(squadData));
+    if(aTab==="squads"&&!curSquadTeam) renderSquadView();
+  }catch(e){
+    console.warn("Squad data load failed:",e);
+  }
+}
+
+// Load squad data when page loads
+document.addEventListener('DOMContentLoaded',()=>{
+  loadSquadDataFromFile();
+});
 </script>
 </body>
 </html>
