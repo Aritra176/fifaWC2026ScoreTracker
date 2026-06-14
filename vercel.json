@@ -1,6 +1,6 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/", "destination": "/fifa2026.html" }
+    { "source": "/", "destination": "/index.html" }
   ]
 }
