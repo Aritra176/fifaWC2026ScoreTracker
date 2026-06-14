@@ -121,6 +121,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .watch-main{display:flex;flex-direction:column;gap:2px;flex:1}
 .watch-info{font-size:10px;color:var(--muted);font-weight:400}
 /* News ticker (floating flash bar) */
+#proxyNotice{background:#3a2400;border-bottom:1px solid #6a4a00;color:#ffce6b;font-size:12px;line-height:1.5;padding:9px 14px;text-align:center}
 .news-ticker{background:linear-gradient(90deg,#1a0d2a,#0d1b2e);border-bottom:1px solid var(--border);overflow:hidden;height:34px;display:flex;align-items:center;position:relative}
 .news-ticker-label{background:var(--live);color:#fff;font-size:10px;font-weight:800;padding:4px 10px;letter-spacing:.5px;font-family:'Barlow Condensed',sans-serif;white-space:nowrap;z-index:2;height:100%;display:flex;align-items:center;cursor:pointer}
 .news-ticker-track{display:flex;align-items:center;gap:40px;white-space:nowrap;animation:ticker 40s linear infinite;padding-left:20px}
@@ -342,6 +343,10 @@ table.st td:not(:nth-child(2)){text-align:center}
   <div class="news-ticker-track" id="newsTrack"></div>
 </div>
 
+<div id="proxyNotice" style="display:none">
+  &#9888;&#65039; Live scores need the free scores connection to be set up (see SETUP-live-data.md). Squads, fixtures, groups, the bracket &amp; where-to-watch all work without it.
+</div>
+
 <div id="body">
   <div id="psq" class="panel on"></div>
   <div id="pf" class="panel"></div>
@@ -505,6 +510,18 @@ const M=[
 // ═══════════════════════════════════════════
 // STATE & STORAGE
 // ═══════════════════════════════════════════
+// ── DATA SOURCE (live scores) ─────────────────────────────────
+// Live scores come from football-data.org (free tier). The browser cannot hold
+// the API token safely, so a serverless function on Vercel forwards requests
+// and adds the token. When the site is hosted on Vercel, the function lives at
+// "/api/scores" (same origin — no CORS, no full URL needed). See SETUP-live-data.md.
+// If you ever host the function elsewhere, put its full URL here instead.
+const SCORES_PROXY = "/api/scores";
+// ── API ENDPOINT (AI features: news, stats, team-of-week) ──────
+// Optional. Only needed for the AI-generated extras. Leave "" if not used.
+const API_PROXY = "";
+const API_URL = API_PROXY ? API_PROXY : "https://api.anthropic.com/v1/messages";
+// ───────────────────────────────────────────────────────────────
 const SK="fifa26h4";
 let D={};
 try{D=JSON.parse(localStorage.getItem(SK)||"{}");}catch{}
@@ -615,16 +632,28 @@ async function callAI(msgs,useSearch,jsonMode){
   // Up to 4 attempts, backing off on rate-limit (429) or overload (529)
   const delays=[1500,4000,9000];
   for(let attempt=0;attempt<=delays.length;attempt++){
-    const r=await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)
-    });
+    let r;
+    try{
+      r=await fetch(API_URL,{
+        method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)
+      });
+    }catch(netErr){
+      // Network/CORS failure — almost always "no proxy on a public site"
+      apiReachable=false; maybeShowProxyNotice();
+      throw new Error("API unreachable");
+    }
     if(r.ok){
+      apiReachable=true;
       const data=await r.json();
       return (data.content||[]).map(b=>b.text||"").filter(Boolean).join("\n");
     }
+    // 401/403 → missing/blocked key (no proxy configured on a public site)
+    if(r.status===401||r.status===403){
+      apiReachable=false; maybeShowProxyNotice();
+      throw new Error("API "+r.status);
+    }
     // Retry on rate-limit / overload; otherwise fail immediately
     if((r.status===429||r.status===529)&&attempt<delays.length){
-      // Respect Retry-After header if present
       const ra=parseInt(r.headers.get("retry-after"));
       const wait=(!isNaN(ra)?ra*1000:delays[attempt]);
       await sleep(wait);
@@ -633,6 +662,18 @@ async function callAI(msgs,useSearch,jsonMode){
     throw new Error("API "+r.status);
   }
   throw new Error("API rate-limited");
+}
+
+// Show a one-time friendly notice if live data can't be fetched on a public site.
+let apiReachable=true, proxyNoticeShown=false;
+function maybeShowProxyNotice(){
+  if(proxyNoticeShown||SCORES_PROXY||API_PROXY) return;          // no notice if a source is set
+  const host=location.hostname;
+  const isLocalOrPreview = host==="localhost"||host==="127.0.0.1"||host.endsWith(".anthropic.com")||host.endsWith("claude.ai")||host.endsWith("claudeusercontent.com");
+  if(isLocalOrPreview) return;                      // works fine inside preview
+  proxyNoticeShown=true;
+  const bar=document.getElementById("proxyNotice");
+  if(bar) bar.style.display="block";
 }
 
 function cleanJSON(raw){
@@ -685,11 +726,86 @@ async function callAIJSON(prompt, useSearch){
 // ═══════════════════════════════════════════
 // AUTO SCORE FETCHING — LIVE MATCHES
 // ═══════════════════════════════════════════
+
+// ── football-data.org integration (free live scores) ──
+// Maps football-data team names to our names where they differ.
+const FD_NAME_MAP={
+  "Korea Republic":"South Korea","South Korea":"South Korea",
+  "Türkiye":"Türkiye","Turkey":"Türkiye",
+  "United States":"United States","USA":"United States",
+  "Bosnia and Herzegovina":"Bosnia-Herzegovina",
+  "Côte d'Ivoire":"Ivory Coast","Ivory Coast":"Ivory Coast",
+  "Czechia":"Czechia","Czech Republic":"Czechia",
+  "DR Congo":"DR Congo","Congo DR":"DR Congo",
+  "Cape Verde":"Cape Verde","Cabo Verde":"Cape Verde",
+  "Curaçao":"Curaçao","New Zealand":"New Zealand","Saudi Arabia":"Saudi Arabia",
+  "South Africa":"South Africa"
+};
+function fdNorm(name){
+  if(!name) return "";
+  if(FD_NAME_MAP[name]) return FD_NAME_MAP[name];
+  return name.trim();
+}
+let fdCache={at:0,matches:[]};
+// Fetch ALL World Cup matches once, cache for 50s (one call covers every live game).
+async function fdFetchAll(){
+  if(Date.now()-fdCache.at<50000 && fdCache.matches.length) return fdCache.matches;
+  const r=await fetch(SCORES_PROXY,{method:"GET",headers:{"Content-Type":"application/json"}});
+  if(!r.ok){ apiReachable=false; maybeShowProxyNotice(); throw new Error("scores "+r.status); }
+  apiReachable=true;
+  const data=await r.json();
+  const matches=(data.matches||[]).map(fm=>({
+    home:fdNorm(fm.homeTeam&&(fm.homeTeam.name||fm.homeTeam.shortName)),
+    away:fdNorm(fm.awayTeam&&(fm.awayTeam.name||fm.awayTeam.shortName)),
+    hs:fm.score&&fm.score.fullTime?fm.score.fullTime.home:null,
+    as:fm.score&&fm.score.fullTime?fm.score.fullTime.away:null,
+    status:fm.status, minute:fm.minute||null, stage:fm.stage||""
+  }));
+  fdCache={at:Date.now(),matches};
+  return matches;
+}
+// Find the football-data record for one of our matches by team names.
+function fdMatchFor(m, all){
+  const H=fdNorm(m.home), A=fdNorm(m.away);
+  return all.find(x=>(x.home===H&&x.away===A)||(x.home===A&&x.away===H));
+}
+// Map football-data status -> our status text + flags.
+function fdStatusToOurs(fm){
+  // FINISHED, IN_PLAY, PAUSED (half-time), TIMED/SCHEDULED, etc.
+  if(fm.status==="FINISHED") return {status:"finished",live:false};
+  if(fm.status==="IN_PLAY"||fm.status==="PAUSED"||fm.status==="LIVE") return {status:"live",live:true};
+  return {status:"upcoming",live:false};
+}
+
 async function fetchLiveScore(m){
   if(fetching.scores.has(m.id))return;
   fetching.scores.add(m.id);
   showSyncBar(true);
   try{
+    if(SCORES_PROXY){
+      // ---- Free football-data.org path ----
+      const all=await fdFetchAll();
+      const fm=fdMatchFor(m,all);
+      if(fm&&fm.hs!==null&&fm.hs!==undefined){
+        const prev=gd(m.id);
+        const st=fdStatusToOurs(fm);
+        const changed=(prev.homeScore!==fm.hs||prev.awayScore!==fm.as);
+        const minChanged=(prev.liveMinute!==fm.minute);
+        const ko=kickoffUTC(m);
+        const pastRegular = ko ? (Date.now()-ko.getTime() > 125*60000) : false;
+        const inET = (st.live&&pastRegular);
+        sd(m.id,{
+          homeScore:fm.hs,awayScore:fm.as,
+          liveMinute:fm.minute,
+          status:st.status,
+          extraTime: prev.extraTime || inET,
+          lastFetched:Date.now(),scoreChanged:changed
+        });
+        if(changed||minChanged) updateScoreInPlace(m);
+      }
+      return;
+    }
+    // ---- Fallback: Anthropic AI path (preview only) ----
     const prompt=`Search the web right now for the live score of the FIFA World Cup 2026 match: ${m.home} vs ${m.away} (${m.date}). Return ONLY this JSON:
 {"homeScore":N,"awayScore":N,"minute":N,"status":"live","phase":"first half / second half / extra time / penalties / full time","events":["45' Goal - Mbappe (FRA)","67' Yellow - Müller (GER)"]}
 For "phase", say "extra time" if the game is in extra time, or "penalties" if in a penalty shootout. If not found or not started yet, return {"homeScore":null,"awayScore":null,"minute":null,"status":"upcoming","phase":"","events":[]}`;
@@ -698,8 +814,6 @@ For "phase", say "extra time" if the game is in extra time, or "penalties" if in
       const prev=gd(m.id);
       const changed=(prev.homeScore!==p.homeScore||prev.awayScore!==p.awayScore);
       const minChanged=(prev.liveMinute!==p.minute);
-      // Detect extra time / penalties — either reported by phase, or the game is still
-      // live past the 2h5m regular-time window. Once flagged, the window extends to 2h45m.
       const ko=kickoffUTC(m);
       const pastRegular = ko ? (Date.now()-ko.getTime() > 125*60000) : false;
       const phaseStr=(p.phase||"").toLowerCase();
@@ -712,7 +826,6 @@ For "phase", say "extra time" if the game is in extra time, or "penalties" if in
         extraTime: prev.extraTime || inET,
         lastFetched:Date.now(),scoreChanged:changed
       });
-      // Update ONLY the score/minute text in place — no page rebuild, no flicker
       if(changed||minChanged) updateScoreInPlace(m);
     }
   }catch(e){console.warn("live score fail:",e);}
@@ -730,6 +843,23 @@ async function fetchFinalScore(m){
   fetching.scores.add(m.id);
   showSyncBar(true);
   try{
+    if(SCORES_PROXY){
+      const all=await fdFetchAll();
+      const fm=fdMatchFor(m,all);
+      if(fm&&fm.status==="FINISHED"&&fm.hs!==null){
+        sd(m.id,{
+          homeScore:fm.hs,awayScore:fm.as,
+          status:"finished",
+          finalScoreFetched:true,
+          lastFetched:Date.now()
+        });
+        softRerender();
+        fetchHighlight(m);
+      }
+      fetching.scores.delete(m.id);
+      showSyncBar(false);
+      return;
+    }
     const prompt=`Search the web for the final score of FIFA World Cup 2026 match: ${m.home} vs ${m.away} (${m.date}). Return ONLY this JSON:
 {"homeScore":N,"awayScore":N,"scorers":["45' Mbappe (FRA)","67' Müller (GER)"],"result":"Home team name won 2-1" }
 If the match hasn't been played yet, return {"homeScore":null}`;
@@ -855,7 +985,7 @@ function updateScoreInPlace(m){
   const d=gd(m.id);
   const st=gSt(m);
   const hasScore=d.homeScore!=null&&d.awayScore!=null;
-  // Update the score box
+  // Update the score box (only present when the Fixtures tab is rendered)
   const box=document.getElementById("score"+m.id);
   if(box){
     let inner="";
@@ -864,15 +994,22 @@ function updateScoreInPlace(m){
       if(d.liveMinute&&st==="live")inner+=`<div class="svsub">${d.liveMinute}'</div>`;
       else if(st==="finished")inner+=`<div class="svsub">Full Time</div>`;
     } else {
-      inner=`<div class="svs">VS</div><div class="svsub">${etIST(m.et)}</div>`;
+      inner=`<div class="svs">VS</div><div class="svsub">${istDateTime(m).time} IST</div>`;
     }
     box.innerHTML=inner;
+  } else if(aTab==="fixtures"){
+    // Card should exist but doesn't (e.g. filtered view rebuilt) — do a light rerender
+    rerender();
   }
-  // Update the live-minute badge
+  // Update the live-minute badge on the card
   const minEl=document.getElementById("min"+m.id);
   if(minEl&&st==="live")minEl.textContent=d.liveMinute?d.liveMinute+"'":"";
-  // Keep group tables in sync silently if user is on that tab and a live score affects standings
-  if(aTab==="groups"&&m.group) rerender();
+  // If the Match Centre for this match is open, refresh its score header live
+  if(curMatchCentre===m.id) renderMatchCentre(m);
+  // Keep group tables / knockout in sync if the user is viewing them
+  if((aTab==="groups"||aTab==="knockout")&&(m.group||m.round)) rerender();
+  // Always refresh the header LIVE / Played counters
+  updBadges();
 }
 
 // ── Flicker-free auto-update: refresh ONLY live score/minute every 60s ──
